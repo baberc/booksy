@@ -79,6 +79,11 @@ function getUniqueId(){
   }
   return value ; 
 }
+function deleteline(idligne){
+   let mylines = fs.readFileSync('bookslist.txt','utf-8').split("\n");
+   let nbre_ligne = maintab.length ; 
+   let res = mylines.splice(0,1);
 
+}
 server.on('close',function(){console.log('we are closing');});
 server.listen(1234,function(){console.log('i am listening ');});
