@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="description" content="store our books">
+	<meta name="author" content="sana">
+	<meta name="keywords" content="keywords for search engines"> 
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>uri books store</title>
+	<style type="text/css">
+	  table{ margin-left: 20%; width: 60%; }
+	  th,td {
+  		border-bottom: 1px solid #ddd;
+  		padding-left: 1%;
+  		padding-right: 2%;
+  		height: 40px;
+  		text-align: left;
+  		overflow: auto;
+  		width: 50%;
+		}
+		th{ background-color: #e5e0e0;}
+		tr{ background-color: #fffcfc;}
+	    tr:hover { background-color: #f5f5f5;}
+	    input{ margin: 0px; width: 100%;overflow:auto;}
+      input:focus {outline:none}
+	    .bouton{margin-left: 85%; background-color: #d30b5c;width: 90px;color: white;	border-radius: 5px; height: 30px; font-weight: bold;}
+	    .bouton:hover {background-color: #e01d6b}
+     
+	</style>
+</head>
+<body>
+	<h2 align = "center"> Books store </h2>
+	<!une grille pour enregistrer les livre-->
+  <div id="ma_table">
+  	<table>
+     <tr id= "titre">
+      <th>Nom du livre</th>
+      <th>Date d'achat</th>
+      <th>X</th>
+     </tr>
+     <tr id="ma-ligne">
+      <form method="post" action="/books/add">
+      <td><input type="text" id="bname" name ="bname" placeholder ="Nom du livre" autocomplete="off"/></td>
+      <td><input type="date" id="bdate" name ="bdate" placeholder ="Date d'achat"/></td>
+      <td></td>
+      
+     </tr>
+  	</table>
+  </div>
+  <input type="submit" name="add" class='bouton' value="ADD"/>
+  </form>
+</body>
+</html>
+<script type="text/javascript">
+
+(function  (){ //une IIFE pour éviter les variables globales
+var bouton = document.querySelector('.bouton');
+var matable = document.getElementsByTagName('table')[0];
+var titre = document.getElementById('titre');
+var bname = document.getElementById('bname');
+var maform = document.getElementsByTagName('form')[0];
+var oldBstyle = bname.style.border;
+
+loadFile('/books/bookslist.txt');
+
+bname.addEventListener('keyup',isTag);
+maform.addEventListener('submit',ValidateMyform);
+
+
+function ValidateMyform(){
+   if(isTag()) event.preventDefault();//si c'est vide ou tag bloque l'envoi
+}
+//verification d'inputs avant l'envoi
+function isTag(){
+   var regEx = /^[<][a-zA-Z0-9<>]+[>]$/; //commence par < et termine par >
+   if(regEx.test(bname.value)||bname.value==""){
+    bname.style.border = '1px solid #fcac76';
+    var msg = '3awd nsiti chi haja';
+    var span1 = document.createElement('span');
+    span1.style.font = 'italic normal 10px arial,serif';
+    span1.style.color ="#e38748";
+    span1.appendChild(document.createTextNode(msg));
+    bname.nextSibling ? bname.parentNode.replaceChild(span1,bname.parentNode.lastChild) : bname.parentNode.appendChild(span1);
+     return true;
+     }
+   else{
+    bname.style.border = oldBstyle;
+   if(bname.nextSibling) bname.parentNode.removeChild(bname.parentNode.lastChild);
+     }
+     return false;
+  }
+
+//fonction chargement du fichier 
+function loadFile(fichier){
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET',fichier);
+  xhr.addEventListener('readystatechange',function(){
+  if(xhr.readyState===XMLHttpRequest.DONE && xhr.status===200)
+  {
+    showContent(xhr.responseText);
+    console.log("its is working yaw");
+  }
+});
+xhr.send(null);
+}
+
+function showContent(requete)
+{
+  var lignes = requete.split("\n");
+  var nbrelignes = lignes.length;
+  var colonnes = new Array();
+
+  for(var i=0;i<nbrelignes;i++)
+  {  
+     colonnes[i] = lignes[i].split(";");    
+    var idligne = colonnes[i][0];
+    var nbook = colonnes[i][1];
+    var dbook = colonnes[i][2];
+   // le nombre de ligne de table doit etre égale au nombre de ligne de fichier + 2 (le titre et et les zonne de texte) si on ne fait pas cette condition l'affiche sera répété 
+    if(matable.childNodes.length < nbrelignes+2)
+      {
+        //création de la nouvelle ligne à ajouter 
+        var ligne = document.createElement('tr');
+        var ncolonne = document.createElement('td');
+        var dcolonne = document.createElement('td');
+        var suppcolonne = document.createElement('td');
+        var supplink = document.createElement('a');
+        supplink.href="/books/del?id="+idligne;
+        supplink.appendChild(document.createTextNode('X'));
+        suppcolonne.appendChild(supplink);
+        //remplissage des colonne
+        ncolonne.appendChild(document.createTextNode(nbook));
+        dcolonne.appendChild(document.createTextNode(dbook));
+        //Ajout des colonnes et ligne
+        ligne.appendChild(ncolonne);
+        ligne.appendChild(dcolonne);
+        ligne.appendChild(suppcolonne);
+        matable.insertBefore(ligne,matable.lastChild);
+        matable.replaceChild(titre,matable.firstChild);
+
+        }
+    else break ;
+  }
+}
+
+})();
+</script>
