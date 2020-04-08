@@ -13,77 +13,89 @@ const server = http.createServer(function(req,res){
          let mymethod = req.method.toLowerCase() ;
     if(mymethod=='get'){
  		   if(path=='/books'){
- 			res.write(fs.readFileSync('book.html','utf-8'));
-      }
- 		  else if(path=='/books/bookslist.txt'){
- 			res.write(fs.readFileSync('bookslist.txt','utf-8'));
-      }
-      else if(path=='/books/del'){
-        // la suppression avec splice 
-        
-        
-          console.log("le lien "+params['id']);
-       
-        
+ 			  res.write(fs.readFileSync('book.html','utf-8'));
+     //   console.log(getUniqueId('bookslist.txt'));
+     //   console.log(getIndex(5,'bookslist.txt'));
+        }
+ 		   else if(path=='/books/bookslist.txt'){
+ 			  res.write(fs.readFileSync('bookslist.txt','utf-8'));
+        }
+       else if(path=='/books/del'){
+           deleteline(params['id'],'bookslist.txt');
+           res.write(fs.readFileSync('book.html','utf-8'));
       }
  	  	else {
  			res.write("the path requested doesn't exit in this server GET method");
  		  }
  	  }
  	  else if(mymethod=='post'){
-      if(path=='/books/add'){
- 		    let body = '';
-        req.on('data', function (data) {
+        if(path=='/books/add'){
+ 		     addDataToFile('bookslist.txt','book.html',req,res);
+         }
+         else {
+         res.write("the path requested doesn't exit in this server POST method");
+         }
+     }
+ 	res.end();
+
+});
+function addDataToFile(file,nextPage,request,result){
+        let  body = '';
+        request.on('data', function (data) {
             body += data;
             // 1e6 === 1 * Math.pow(10, 6) === 1 * 1000000 ~~~ 1MB
             if (body.length > 1e6) { 
                 // FLOOD ATTACK OR FAULTY CLIENT, NUKE REQUEST
-                req.connection.destroy();
+                request.connection.destroy();
             }
          });
-        req.on('end', function () {
+        request.on('end', function () {
          
          let output  = querystring.parse(body);
-         let input = '\n'+getUniqueId()+';'+output.bname+';'+output.bdate;
+         let input = '\n'+getUniqueId('bookslist.txt')+';'+output.bname+';'+output.bdate;
 
-         fs.appendFile('bookslist.txt',input,function(err){
+         fs.appendFile(file,input,function(err){
           if(err) throw err ;
-          console.log("should be updated");
-         });
-          console.log("NO MORE DATA");
-         });
-        res.write(fs.readFileSync('book.html','utf-8'));
-      }
-      else {
-      res.write("the path requested doesn't exit in this server POST method");
-      }
-  }
- 	res.end();
-
-});
-function getUniqueId(){
-  let maintab = fs.readFileSync('bookslist.txt','utf-8').split("\n");
-  let nbre_ligne = maintab.length ; 
-  let subtab;
-  let value ; 
-  console.log(nbre_ligne);
-  if(nbre_ligne===0){
-    value = 1;
-    console.log('value');
-  }
-  else if(nbre_ligne>0){
-   for(let i=0;i<nbre_ligne;i++){
-    subtab = maintab[i].split(';');
-   }
-   
-  }
-  return value ; 
+          console.log("A new value is added");
+               });
+           });
+        result.write(fs.readFileSync(nextPage,'utf-8'));
 }
-function deleteline(idligne){
-   let mylines = fs.readFileSync('bookslist.txt','utf-8').split("\n");
-   let nbre_ligne = maintab.length ; 
-   let res = mylines.splice(0,1);
+function getUniqueId(file){
+  let maintab = fs.readFileSync(file,'utf-8').split("\n"),
+      lignes = maintab.length,resId = 0,
+      cols = new Array(),idTab = new Array();
+ //--remplissage des tableaux avec les données 
+  for(let i=0;i<lignes;i++){
+    cols[i]=maintab[i].split(';');//3 colonnes (id,bookname,date)
+    idTab[i]=cols[i][0];//remplissage de idTab par les id des livres
+  }
+ let maxID = Math.max(...idTab);
+  if(lignes===0){ resId = 1; }
+  else{ resId = maxID + 1; }
 
+  return resId ;
+}
+function getIndex(shownID,file){
+   let maintab = fs.readFileSync(file,'utf-8').split("\n");
+   let lignes = maintab.length ; 
+   let cols = new Array();
+   for(let i=0;i<lignes;i++){
+    cols[i]=maintab[i].split(';');
+    if(cols[i][0]==shownID) return  i;
+   }
+}
+function deleteline(shownID,file){
+  let indexLine = getIndex(shownID,file);
+  let maintab = fs.readFileSync(file,'utf-8').split("\n");
+  maintab.splice(indexLine,1);
+  let data = maintab.join("\n");
+
+  fs.writeFile(file,data,function(err){
+          if(err) throw err ;
+          console.log("i just deleted id "+shownID+" index "+ indexLine+'/n');
+               });
+              
 }
 server.on('close',function(){console.log('we are closing');});
 server.listen(1234,function(){console.log('i am listening ');});
