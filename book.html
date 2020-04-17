@@ -58,11 +58,11 @@ var bouton = document.querySelector('.bouton');
 var matable = document.getElementsByTagName('table')[0];
 var titre = document.getElementById('titre');
 var bname = document.getElementById('bname');
+var bdate = document.getElementById('bdate');
 var maform = document.getElementsByTagName('form')[0];
 var oldBstyle = bname.style.border;
 
 loadFile('/books/bookslist.txt');
-
 bname.addEventListener('keyup',isTag);
 maform.addEventListener('submit',ValidateMyform);
 
@@ -74,22 +74,30 @@ function ValidateMyform(){
 function isTag(){
    var regEx = /^[<][a-zA-Z0-9<>]+[>]$/; //commence par < et termine par >
    if(regEx.test(bname.value)||bname.value==""){
-    bname.style.border = '1px solid #fcac76';
-    var msg = '3awd nsiti chi haja';
+    errorStyle(bname,'mansitich smiya');
+   
+   if(bdate.value=='')   errorStyle(bdate,'3awdi la date');
+   return true;
+   }
+   else{
+     oldStyle(bname);
+     oldStyle(bdate);
+     return false;
+  }
+function oldStyle(myipnut){
+   myipnut.style.border = oldBstyle;
+   if(myipnut.nextSibling) myipnut.parentNode.removeChild(myipnut.parentNode.lastChild);
+     }
+}
+function errorStyle(myinput,msg){  
     var span1 = document.createElement('span');
     span1.style.font = 'italic normal 10px arial,serif';
     span1.style.color ="#e38748";
+    myinput.style.border = '1px solid #fcac76';
+    
     span1.appendChild(document.createTextNode(msg));
-    bname.nextSibling ? bname.parentNode.replaceChild(span1,bname.parentNode.lastChild) : bname.parentNode.appendChild(span1);
-     return true;
-     }
-   else{
-    bname.style.border = oldBstyle;
-   if(bname.nextSibling) bname.parentNode.removeChild(bname.parentNode.lastChild);
-     }
-     return false;
-  }
-
+    myinput.nextSibling ? myinput.parentNode.replaceChild(span1,myinput.parentNode.lastChild) : myinput.parentNode.appendChild(span1);
+}
 //fonction chargement du fichier 
 function loadFile(fichier){
   var xhr = new XMLHttpRequest();
@@ -109,7 +117,6 @@ function showContent(requete)
   var lignes = requete.split("\n");
   var nbrelignes = lignes.length;
   var colonnes = new Array();
-
   for(var i=0;i<nbrelignes;i++)
   {  
      colonnes[i] = lignes[i].split(";");    
