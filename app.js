@@ -50,14 +50,15 @@ function addDataToFile(file,nextPage,request,result){
             }
          });
         request.on('end', function () {
-         
          let output  = querystring.parse(body);
+         if(output.bname != '' && output.bdate != ''){ //verifier si les input ne sont null sinn block
          let input = '\n'+getUniqueId('bookslist.txt')+';'+output.bname+';'+output.bdate;
-
          fs.appendFile(file,input,function(err){
           if(err) throw err ;
           console.log("A new value is added");
                });
+          }
+          else console.log('the data entered is null refill the cases');
            });
         result.write(fs.readFileSync(nextPage,'utf-8'));
 }
