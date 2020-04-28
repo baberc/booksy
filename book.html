@@ -30,6 +30,9 @@
 </head>
 <body>
 	<h2 align = "center"> Books store </h2>
+  <div id='searchArea' >
+   <input type="text" name="search" id='keyword' placeholder="type your seach keywords" autocomplete="off"/>
+  </div>
 	<!une grille pour enregistrer les livre-->
   <div id="ma_table">
   	<table>
@@ -60,12 +63,19 @@ var titre = document.getElementById('titre');
 var bname = document.getElementById('bname');
 var bdate = document.getElementById('bdate');
 var maform = document.getElementsByTagName('form')[0];
+var keyword = document.getElementById('keyword');
+var cle = 'ana';
+var searchArea = document.getElementById('searchArea');
 var oldBstyle = bname.style.border;
+var issearch = true;
 
-loadFile('/books/bookslist.txt');
+
+//loadFile('/books/bookslist.txt',false);
 bname.addEventListener('keyup',isTag);
 maform.addEventListener('submit',ValidateMyform);
-
+keyword.addEventListener('change',function(){
+loadFile('/books/bookslist.txt/search?key='+keyword.value);
+                });
 
 function ValidateMyform(){
    if(isTag()) event.preventDefault();//si c'est vide ou tag bloque l'envoi
@@ -102,53 +112,80 @@ function errorStyle(myinput,msg){
 function loadFile(fichier){
   var xhr = new XMLHttpRequest();
   xhr.open('GET',fichier);
+  var answer = new Array();
+  var cols = new Array();
   xhr.addEventListener('readystatechange',function(){
   if(xhr.readyState===XMLHttpRequest.DONE && xhr.status===200)
-  {
-    showContent(xhr.responseText);
-    console.log("its is working yaw");
+  { 
+    //showContent(xhr.responseText);
+    answer = xhr.responseText.split('\n');
+     console.log("its is working yaw "+answer);
+     for(var i=0;i<answer.length;i++){
+      cols[i] = answer[i].split(',');
+      var idligne = cols[i][0];
+      var nbook = cols[i][1];
+      var dbook = cols[i][2];
+     
+
+       if(answer[i]) lineBuild(idligne,nbook,dbook);
+   
+     }
+  
+     
   }
+ 
 });
-xhr.send(null);
+ xhr.send(null);
 }
 
-function showContent(requete)
+function showContent(data)
 {
-  var lignes = requete.split("\n");
+  var lignes = data.split("\n");
   var nbrelignes = lignes.length;
   var colonnes = new Array();
   for(var i=0;i<nbrelignes;i++)
   {  
      colonnes[i] = lignes[i].split(";");    
-    var idligne = colonnes[i][0];
-    var nbook = colonnes[i][1];
-    var dbook = colonnes[i][2];
+     var idligne = colonnes[i][0];
+     var nbook = colonnes[i][1];
+     var dbook = colonnes[i][2];
    // le nombre de ligne de table doit etre égale au nombre de ligne de fichier + 2 (le titre et et les zonne de texte) si on ne fait pas cette condition l'affiche sera répété 
     if(matable.childNodes.length < nbrelignes+2)
       {
-        //création de la nouvelle ligne à ajouter 
+         
+          // if(nbook.startsWith(keyword.value)){
+            lineBuild(idligne,nbook,dbook);
+          // }
+           
+        }
+    else break ;
+  }
+}
+function lineBuild(id,name,date){
+//création de la nouvelle ligne à ajouter 
         var ligne = document.createElement('tr');
         var ncolonne = document.createElement('td');
         var dcolonne = document.createElement('td');
         var suppcolonne = document.createElement('td');
         var supplink = document.createElement('a');
-        supplink.href="/books/del?id="+idligne;
+        supplink.href="/books/del?id="+id;
         supplink.appendChild(document.createTextNode('X'));
         suppcolonne.appendChild(supplink);
         //remplissage des colonne
-        ncolonne.appendChild(document.createTextNode(nbook));
-        dcolonne.appendChild(document.createTextNode(dbook));
+        ncolonne.appendChild(document.createTextNode(name));
+        dcolonne.appendChild(document.createTextNode(date));
         //Ajout des colonnes et ligne
         ligne.appendChild(ncolonne);
         ligne.appendChild(dcolonne);
         ligne.appendChild(suppcolonne);
         matable.insertBefore(ligne,matable.lastChild);
         matable.replaceChild(titre,matable.firstChild);
-
-        }
-    else break ;
-  }
 }
 
+function checkExistance(key,name){
+if(name.startsWith(key)){ 
+  searchArea.appendChild(document.createTextNode(name+";"));
+}
+}
 })();
 </script>
