@@ -17,13 +17,29 @@ const server = http.createServer(function(req,res){
      //   console.log(getUniqueId('bookslist.txt'));
      //   console.log(getIndex(5,'bookslist.txt'));
         }
- 		   else if(path=='/books/bookslist.txt'){
- 			  res.write(fs.readFileSync('bookslist.txt','utf-8'));
-        }
-       else if(path=='/books/del'){
+      else if(path=='/books/del'){
            deleteline(params['id'],'bookslist.txt');
            res.write(fs.readFileSync('book.html','utf-8'));
       }
+ 		   else if(path=='/books/bookslist.txt'){
+ 			  res.write(fs.readFileSync('bookslist.txt','utf-8'));
+        }
+      else if(path =='/books/bookslist.txt/search'){
+        var anothertab = fs.readFileSync('bookslist.txt','utf-8').split('\n');
+        var sub = new Array();
+        var tabres = new Array();
+        for (let i=0;i<anothertab.length;i++){
+          sub[i]=anothertab[i].split(';');
+          if(!sub[i][1].startsWith(params['key'])){
+            sub.splice(i,1);
+          }
+          if (sub[i]) tabres.push('\n'+sub[i]);
+        }
+      //  tabres.splice(0,1);
+       console.log(tabres.toString());
+       res.write(tabres.toString());
+      }
+     
  	  	else {
  			res.write("the path requested doesn't exit in this server GET method");
  		  }
