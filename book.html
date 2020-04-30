@@ -25,6 +25,7 @@
       input:focus {outline:none}
 	    .bouton{margin-left: 85%; background-color: #d30b5c;width: 90px;color: white;	border-radius: 5px; height: 30px; font-weight: bold;}
 	    .bouton:hover {background-color: #e01d6b}
+      .createdLigne{color:black;}
      
 	</style>
 </head>
@@ -36,18 +37,21 @@
 	<!une grille pour enregistrer les livre-->
   <div id="ma_table">
   	<table>
+    <thead>
      <tr id= "titre">
       <th>Nom du livre</th>
       <th>Date d'achat</th>
       <th>X</th>
      </tr>
+     </thead>
+     <tfoot>
      <tr id="ma-ligne">
       <form method="post" action="/books/add">
       <td><input type="text" id="bname" name ="bname" placeholder ="Nom du livre" autocomplete="off"/></td>
       <td><input type="date" id="bdate" name ="bdate" placeholder ="Date d'achat"/></td>
       <td></td>
-      
      </tr>
+   </tfoot>
   	</table>
   </div>
   <input type="submit" name="add" class='bouton' value="ADD"/>
@@ -64,18 +68,19 @@ var bname = document.getElementById('bname');
 var bdate = document.getElementById('bdate');
 var maform = document.getElementsByTagName('form')[0];
 var keyword = document.getElementById('keyword');
-var cle = 'ana';
-var searchArea = document.getElementById('searchArea');
+
+//var searchArea = document.getElementById('searchArea');
 var oldBstyle = bname.style.border;
-var issearch = true;
 
 
-//loadFile('/books/bookslist.txt',false);
+
+loadFile('/books/bookslist.txt');
 bname.addEventListener('keyup',isTag);
 maform.addEventListener('submit',ValidateMyform);
 keyword.addEventListener('change',function(){
-loadFile('/books/bookslist.txt/search?key='+keyword.value);
-                });
+matable.removeChild(matable.lastChild);
+ loadFile('/books/bookslist.txt/search?key='+keyword.value);
+                 });
 
 function ValidateMyform(){
    if(isTag()) event.preventDefault();//si c'est vide ou tag bloque l'envoi
@@ -117,21 +122,7 @@ function loadFile(fichier){
   xhr.addEventListener('readystatechange',function(){
   if(xhr.readyState===XMLHttpRequest.DONE && xhr.status===200)
   { 
-    //showContent(xhr.responseText);
-    answer = xhr.responseText.split('\n');
-     console.log("its is working yaw "+answer);
-     for(var i=0;i<answer.length;i++){
-      cols[i] = answer[i].split(',');
-      var idligne = cols[i][0];
-      var nbook = cols[i][1];
-      var dbook = cols[i][2];
-     
-
-       if(answer[i]) lineBuild(idligne,nbook,dbook);
-   
-     }
-  
-     
+    showContent(xhr.responseText);
   }
  
 });
@@ -140,28 +131,30 @@ function loadFile(fichier){
 
 function showContent(data)
 {
+  var tbody = document.createElement('tbody');
+  matable.appendChild(tbody);
+  // if(tbody.childNodes.length){
+   //  tbody.remove();
+  // }
   var lignes = data.split("\n");
   var nbrelignes = lignes.length;
   var colonnes = new Array();
   for(var i=0;i<nbrelignes;i++)
   {  
-     colonnes[i] = lignes[i].split(";");    
+     colonnes[i] = lignes[i].split(",");    
      var idligne = colonnes[i][0];
      var nbook = colonnes[i][1];
      var dbook = colonnes[i][2];
-   // le nombre de ligne de table doit etre égale au nombre de ligne de fichier + 2 (le titre et et les zonne de texte) si on ne fait pas cette condition l'affiche sera répété 
-    if(matable.childNodes.length < nbrelignes+2)
+  
+    if(lignes[i])
       {
-         
-          // if(nbook.startsWith(keyword.value)){
-            lineBuild(idligne,nbook,dbook);
-          // }
-           
+            lineBuild(idligne,nbook,dbook,tbody);
+            console.log(lignes[i]);
         }
-    else break ;
+   
   }
 }
-function lineBuild(id,name,date){
+function lineBuild(id,name,date,corps){
 //création de la nouvelle ligne à ajouter 
         var ligne = document.createElement('tr');
         var ncolonne = document.createElement('td');
@@ -175,17 +168,14 @@ function lineBuild(id,name,date){
         ncolonne.appendChild(document.createTextNode(name));
         dcolonne.appendChild(document.createTextNode(date));
         //Ajout des colonnes et ligne
+        ligne.classList.add('createdLigne');
         ligne.appendChild(ncolonne);
         ligne.appendChild(dcolonne);
         ligne.appendChild(suppcolonne);
-        matable.insertBefore(ligne,matable.lastChild);
-        matable.replaceChild(titre,matable.firstChild);
+        corps.appendChild(ligne);
+        // matable.insertBefore(ligne,matable.lastChild);
+        // matable.replaceChild(titre,matable.firstChild);
 }
 
-function checkExistance(key,name){
-if(name.startsWith(key)){ 
-  searchArea.appendChild(document.createTextNode(name+";"));
-}
-}
 })();
 </script>
