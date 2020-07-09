@@ -8,53 +8,51 @@ const server = http.createServer(function(req,res){
 			   let parsedURL = url.parse(req.url);
 			   let path = parsedURL.pathname;
 	  		 var params = querystring.parse(parsedURL.query);
-	  		 res.writeHead(200,"ok");
+	  res.writeHead(200,"ok");
 	  		   //Networking
-         let mymethod = req.method.toLowerCase() ;
+    let mymethod = req.method.toLowerCase() ;
     if(mymethod=='get'){
- 		   if(path=='/books'){
- 			  res.write(fs.readFileSync('book.html','utf-8'));
-     //   console.log(getUniqueId('bookslist.txt'));
-     //   console.log(getIndex(5,'bookslist.txt'));
-        }
-      else if(path=='/books/del'){
-           deleteline(params['id'],'bookslist.txt');
-           res.write(fs.readFileSync('book.html','utf-8'));
-      }
- 		   else if(path=='/books/bookslist.txt'){
- 			  res.write(fs.readFileSync('bookslist.txt','utf-8'));
-        }
-      else if(path =='/books/bookslist.txt/search'){
-        var anothertab = fs.readFileSync('bookslist.txt','utf-8').split('\n');
-        var sub = new Array();
-        var tabres = new Array();
-        for (let i=0;i<anothertab.length;i++){
-          sub[i]=anothertab[i].split(';');
-          if(!sub[i][1].startsWith(params['key'])){
-            sub.splice(i,1);
-          }
-          if (sub[i]) tabres.push('\n'+sub[i]);
-        }
-      //  tabres.splice(0,1);
-       console.log(tabres.toString());
-       res.write(tabres.toString());
-      }
-     
- 	  	else {
- 			res.write("the path requested doesn't exit in this server GET method");
- 		  }
+ 		       if(path=='/books'){
+ 			       res.write(fs.readFileSync('book.html','utf-8'));
+             }
+           else if(path=='/books/del'){
+             deleteline(params['id'],'bookslist.txt');
+             res.write(fs.readFileSync('book.html','utf-8'));
+           }
+ 		       else if(path=='/books/bookslist.txt'){
+ 			       res.write(fs.readFileSync('bookslist.txt','utf-8'));
+           }
+           else if(path =='/books/search'){
+             mySearch('bookslist.txt',res,params['key']);
+           }
+ 	  	     else {
+ 			       res.write("the path requested doesn't exit in this server with GET method");
+ 		       }
  	  }
  	  else if(mymethod=='post'){
-        if(path=='/books/add'){
- 		     addDataToFile('bookslist.txt','book.html',req,res);
+         if(path=='/books/add'){
+ 		         addDataToFile('bookslist.txt','book.html',req,res);
          }
          else {
-         res.write("the path requested doesn't exit in this server POST method");
+            res.write("the path requested doesn't exit in this server in POST method");
          }
      }
  	res.end();
-
 });
+function mySearch(file,result,clef){
+              var maintab = fs.readFileSync(file,'utf-8').split('\n');
+              var subtab = new Array();
+              var restab = new Array();
+              for (let i=0;i<maintab.length;i++){
+                      subtab[i]=maintab[i].split(',');
+                      if(!subtab[i][1].startsWith(clef)){
+                        subtab.splice(i,1);
+                      }
+                      if (subtab[i]) restab.push('\n'+subtab[i]);
+               }
+             console.log(restab.toString());
+             result.write(restab.toString());
+               }
 function addDataToFile(file,nextPage,request,result){
         let  body = '';
         request.on('data', function (data) {
@@ -67,8 +65,9 @@ function addDataToFile(file,nextPage,request,result){
          });
         request.on('end', function () {
          let output  = querystring.parse(body);
-         if(output.bname != '' && output.bdate != ''){ //verifier si les input ne sont null sinn block
-         let input = '\n'+getUniqueId('bookslist.txt')+';'+output.bname+';'+output.bdate;
+         if(output.nom != '' && output.dateAchat != ''&& output.owner != ''&& output.location != ''&& output.lu != ''){ //verifier si les input ne sont null sinn block
+         let input = '\n'+getUniqueId('bookslist.txt')+','+output.nom+','+output.dateAchat+','+output.owner+','+output.location+','+output.lu;
+       
          fs.appendFile(file,input,function(err){
           if(err) throw err ;
           console.log("A new value is added");
@@ -83,12 +82,12 @@ function getUniqueId(file){
       lignes = maintab.length,resId = 0,
       cols = new Array(),idTab = new Array();
  //--remplissage des tableaux avec les données 
-  for(let i=0;i<lignes;i++){
-    cols[i]=maintab[i].split(';');//3 colonnes (id,bookname,date)
-    idTab[i]=cols[i][0];//remplissage de idTab par les id des livres
+  for(let i=1;i<lignes;i++){
+    cols[i]=maintab[i].split(',');//3 colonnes (id,bookname,date)
+    idTab[i-1]=cols[i][0];//remplissage de idTab par les id des livres
   }
- let maxID = Math.max(...idTab);
-  if(lignes===0){ resId = 1; }
+  let maxID = Math.max(...idTab);
+  if(lignes===1){ resId = 1; }
   else{ resId = maxID + 1; }
 
   return resId ;
@@ -98,7 +97,7 @@ function getIndex(shownID,file){
    let lignes = maintab.length ; 
    let cols = new Array();
    for(let i=0;i<lignes;i++){
-    cols[i]=maintab[i].split(';');
+    cols[i]=maintab[i].split(',');
     if(cols[i][0]==shownID) return  i;
    }
 }
@@ -115,4 +114,4 @@ function deleteline(shownID,file){
               
 }
 server.on('close',function(){console.log('we are closing');});
-server.listen(1234,function(){console.log('i am listening ');});
+server.listen(1234,function(){console.log('Race starteuu... ');});

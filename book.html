@@ -16,166 +16,148 @@
   		height: 40px;
   		text-align: left;
   		overflow: auto;
-  		width: 50%;
 		}
 		th{ background-color: #e5e0e0;}
 		tr{ background-color: #fffcfc;}
 	    tr:hover { background-color: #f5f5f5;}
-	    input{ margin: 0px; width: 100%;overflow:auto;}
+	    #keyword{ margin: 0px; width: 100%;overflow:auto;}
       input:focus {outline:none}
 	    .bouton{margin-left: 85%; background-color: #d30b5c;width: 90px;color: white;	border-radius: 5px; height: 30px; font-weight: bold;}
 	    .bouton:hover {background-color: #e01d6b}
-      .createdLigne{color:black;}
-     
 	</style>
 </head>
 <body>
 	<h2 align = "center"> Books store </h2>
-  <div id='searchArea' >
-   <input type="text" name="search" id='keyword' placeholder="type your seach keywords" autocomplete="off"/>
-  </div>
+      <div id='searchArea' >
+           <input type="text" name="search" id='keyword' placeholder="type your seach keywords" autocomplete="off"/>
+      </div>
 	<!une grille pour enregistrer les livre-->
-  <div id="ma_table">
-  	<table>
-    <thead>
-     <tr id= "titre">
-      <th>Nom du livre</th>
-      <th>Date d'achat</th>
-      <th>X</th>
-     </tr>
-     </thead>
-     <tfoot>
-     <tr id="ma-ligne">
-      <form method="post" action="/books/add">
-      <td><input type="text" id="bname" name ="bname" placeholder ="Nom du livre" autocomplete="off"/></td>
-      <td><input type="date" id="bdate" name ="bdate" placeholder ="Date d'achat"/></td>
-      <td></td>
-     </tr>
-   </tfoot>
-  	</table>
-  </div>
-  <input type="submit" name="add" class='bouton' value="ADD"/>
-  </form>
+       <div id="ma_grille"></div>
 </body>
 </html>
 <script type="text/javascript">
 
 (function  (){ //une IIFE pour éviter les variables globales
-var bouton = document.querySelector('.bouton');
-var matable = document.getElementsByTagName('table')[0];
-var titre = document.getElementById('titre');
-var bname = document.getElementById('bname');
-var bdate = document.getElementById('bdate');
-var maform = document.getElementsByTagName('form')[0];
-var keyword = document.getElementById('keyword');
+    var madiv   = document.getElementById('ma_grille');
+    var myform  = document.createElement('form');
+                 myform.setAttribute('action','/books/add');
+                 myform.setAttribute('method','post');
+                 madiv.appendChild(myform);
+    var mybutton = document.createElement('input');
+                 mybutton.setAttribute('type','submit');
+                 mybutton.setAttribute('name','add');
+                 mybutton.setAttribute('value','ADD');
+                 mybutton.setAttribute('class','bouton');
+    var keyword = document.getElementById('keyword');
 
-//var searchArea = document.getElementById('searchArea');
-var oldBstyle = bname.style.border;
 
+        loadFile('/books/bookslist.txt');//cals gridbuild,build,istag
+      
+        myform.addEventListener('submit',ValidateMyform);
+      //  bname.addEventListener('keyup',isTag);
+        keyword.addEventListener('keyup',loadSearchedItem);
+//==les fonction de verification des inputs avant l'envoi==//
+    function ValidateMyform(){
+       if(isTag()) event.preventDefault();//si c'est vide ou tag bloque l'envoi
+    }
 
+    function isTag(){
+      var regEx = /^[<][a-zA-Z0-9<>]+[>]$/; //commence par < et termine par >
+      if(regEx.test(this.value)||this.value==""){
+           errorStyle(this,'mansitich smiya ?');
+           return true;
+        }
+      else{
+           this.style.border = '';
+           if(this.nextSibling) this.parentNode.removeChild(this.parentNode.lastChild);
+             return false;
+        }
+      }
 
-loadFile('/books/bookslist.txt');
-bname.addEventListener('keyup',isTag);
-maform.addEventListener('submit',ValidateMyform);
-keyword.addEventListener('change',function(){
-matable.removeChild(matable.lastChild);
- loadFile('/books/bookslist.txt/search?key='+keyword.value);
-                 });
+    function errorStyle(myinput,msg){  
+        var span1 = document.createElement('span');
+        span1.style.font = 'italic normal 10px arial,serif';
+        span1.style.color ="#e38748";
+        myinput.style.border = '1px solid #fcac76';
+        
+        span1.appendChild(document.createTextNode(msg));
+        myinput.nextSibling ? myinput.parentNode.replaceChild(span1,myinput.parentNode.lastChild) : myinput.parentNode.appendChild(span1);
+    }
+//==les fonctions du  chargement du fichier qui contient la liste des item==// 
+    function loadFile(fichier){
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET',fichier);
+        xhr.addEventListener('readystatechange',function(){
+          if(xhr.readyState===XMLHttpRequest.DONE && xhr.status===200){
+                        gridBuild(xhr.responseText,madiv.firstChild,'\n',',');
+                          }
+                        });
+        xhr.send(null);
+       }
+    function gridBuild(data,container,lineSelector,colSelector){
+      //==Organisation du data dans des tableau==//
+             var  lignes = data.split(lineSelector), 
+                  nbrelignes = lignes.length,
+                  colonnes = new Array();
+             for(var i=0;i<nbrelignes;i++) colonnes[i] = lignes[i].split(colSelector);    
+             var nbrecols = colonnes[0].length ; 
+      //====Création de la grille================//
+         var matable = document.createElement('table');
+         var thead = document.createElement('thead');
+         var tbody = document.createElement('tbody');
+         var tfoot = document.createElement('tfoot');
+         
+              matable.appendChild(thead);
+              matable.appendChild(tbody);
+              matable.appendChild(tfoot);
+              container.appendChild(matable);
 
-function ValidateMyform(){
-   if(isTag()) event.preventDefault();//si c'est vide ou tag bloque l'envoi
-}
-//verification d'inputs avant l'envoi
-function isTag(){
-   var regEx = /^[<][a-zA-Z0-9<>]+[>]$/; //commence par < et termine par >
-   if(regEx.test(bname.value)||bname.value==""){
-    errorStyle(bname,'mansitich smiya');
-   
-   if(bdate.value=='')   errorStyle(bdate,'3awdi la date');
-   return true;
-   }
-   else{
-     oldStyle(bname);
-     oldStyle(bdate);
-     return false;
-  }
-function oldStyle(myipnut){
-   myipnut.style.border = oldBstyle;
-   if(myipnut.nextSibling) myipnut.parentNode.removeChild(myipnut.parentNode.lastChild);
-     }
-}
-function errorStyle(myinput,msg){  
-    var span1 = document.createElement('span');
-    span1.style.font = 'italic normal 10px arial,serif';
-    span1.style.color ="#e38748";
-    myinput.style.border = '1px solid #fcac76';
-    
-    span1.appendChild(document.createTextNode(msg));
-    myinput.nextSibling ? myinput.parentNode.replaceChild(span1,myinput.parentNode.lastChild) : myinput.parentNode.appendChild(span1);
-}
-//fonction chargement du fichier 
-function loadFile(fichier){
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET',fichier);
-  var answer = new Array();
-  var cols = new Array();
-  xhr.addEventListener('readystatechange',function(){
-  if(xhr.readyState===XMLHttpRequest.DONE && xhr.status===200)
-  { 
-    showContent(xhr.responseText);
-  }
- 
-});
- xhr.send(null);
-}
+         thead.appendChild(document.createElement('tr'));
+         for(let i=1;i<nbrelignes;i++) tbody.appendChild(document.createElement('tr'));
+         tfoot.appendChild(document.createElement('tr'));
 
-function showContent(data)
-{
-  var tbody = document.createElement('tbody');
-  matable.appendChild(tbody);
-  // if(tbody.childNodes.length){
-   //  tbody.remove();
-  // }
-  var lignes = data.split("\n");
-  var nbrelignes = lignes.length;
-  var colonnes = new Array();
-  for(var i=0;i<nbrelignes;i++)
-  {  
-     colonnes[i] = lignes[i].split(",");    
-     var idligne = colonnes[i][0];
-     var nbook = colonnes[i][1];
-     var dbook = colonnes[i][2];
-  
-    if(lignes[i])
-      {
-            lineBuild(idligne,nbook,dbook,tbody);
-            console.log(lignes[i]);
+          build(thead.firstChild,colonnes[0],'th',false);//remplissage de Thead
+          for(var i=1;i<nbrelignes;i++) build(tbody.childNodes[i-1],colonnes[i],'td');//remplissage de Tbody
+          build(tfoot.firstChild,colonnes[0],'td',true); //remplissage de tfoot 
+          myform.appendChild(mybutton);
+          myform.addEventListener('submit',ValidateMyform);
         }
    
-  }
-}
-function lineBuild(id,name,date,corps){
-//création de la nouvelle ligne à ajouter 
-        var ligne = document.createElement('tr');
-        var ncolonne = document.createElement('td');
-        var dcolonne = document.createElement('td');
-        var suppcolonne = document.createElement('td');
-        var supplink = document.createElement('a');
-        supplink.href="/books/del?id="+id;
-        supplink.appendChild(document.createTextNode('X'));
-        suppcolonne.appendChild(supplink);
-        //remplissage des colonne
-        ncolonne.appendChild(document.createTextNode(name));
-        dcolonne.appendChild(document.createTextNode(date));
-        //Ajout des colonnes et ligne
-        ligne.classList.add('createdLigne');
-        ligne.appendChild(ncolonne);
-        ligne.appendChild(dcolonne);
-        ligne.appendChild(suppcolonne);
-        corps.appendChild(ligne);
-        // matable.insertBefore(ligne,matable.lastChild);
-        // matable.replaceChild(titre,matable.firstChild);
-}
+    function build(container,itemsTab,colTag,isInput){
+      var tdTab  = new Array();
+      for(var i=1;i<itemsTab.length;i++){
+            tdTab[i] = document.createElement(colTag);
+            container.appendChild(tdTab[i]);
+          
+          if(isInput){
+              var myinput = document.createElement('input');
+                if(itemsTab[i].indexOf('date')>-1){
+                       myinput.setAttribute("type", "date");
+                       myinput.setAttribute("name", "dateAchat");
+                  }
+                else{
+                  myinput.setAttribute("type", "text");
+                  myinput.setAttribute("placeholder", itemsTab[i]);
+                  myinput.setAttribute("name", itemsTab[i].split(" ")[0]);
+                 }
+
+               tdTab[i].appendChild(myinput);
+               myinput.addEventListener('keyup',isTag);
+             
+              }
+          else   tdTab[i].appendChild(document.createTextNode(itemsTab[i]));
+             
+            }
+        }
+    
+//==la fonctions qui envoi vers l'autocompétion et affiche les élément recherchés==//
+    function loadSearchedItem(){
+      //vider la grille avant d'ajouter les resultats de la nouvelle requete,le TBody est le 2eme child de la table
+       // madiv.removeChild(madiv.firstChild);
+       // myform.firstChild.removeChild(myform.firstChild.childNodes[1]);
+       console.log(myform.firstChild.childNodes);
+        loadFile('/books/search?key='+keyword.value);
+      }
 
 })();
 </script>

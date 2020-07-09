@@ -1,10 +1,12 @@
-1;Arba3on ; intikam
-2;Vertigo  ; istihdar
-3;Akhbar ; khawateri
-4;new;2020-03-16
-5;ana;2020-04-14
-6;sss;2020-04-20
-7;more;2020-04-13
-10;qqq;
-11;sss;
-10;moon;
+id,nom du livre,date d'achat,owner,location,lu par
+2,Vertigo, istihdar,sana,dar,afaf
+5,ana,2020-04-14,afaf,brra,sana
+6,sss,2020-04-20,afaf,brra,sana
+7,more,2020-04-13,afaf,brra,sana
+12,ljadid,2020-04-21,afaf,brra,sana
+1,more,2020-04-29,afaf,brra,sana
+2,newbi,2020-04-21,afaf,brra,sana
+14,anatani,2020-04-22,afaf,brra,sana
+15,anatani,2020-04-22,afaf,brra,sana
+16,mala,2020-04-21,afaf,brra,sana
+17,d,2020-07-27,ss,aa,ss
